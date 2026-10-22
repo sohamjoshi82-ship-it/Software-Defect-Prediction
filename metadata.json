@@ -1,0 +1,6 @@
+{
+  "name": "DefectPredict AI - Software Defect Prediction ML Workbench",
+  "description": "Interactive Machine Learning platform for Software Defect Prediction (SDP) utilizing McCabe, Halstead, and CK metrics with benchmark datasets (NASA MDP, PROMISE), model training, explainable AI risk scoring, and real-time code scanner.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
