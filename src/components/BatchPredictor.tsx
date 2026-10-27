@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { motion } from 'motion/react';
 import {
   FileText,
   Search,
@@ -11,6 +12,8 @@ import {
   ChevronDown,
 } from 'lucide-react';
 import type { DatasetMeta, SoftwareModuleRecord, TrainedModelInstance } from '../ml/types.ts';
+import { InteractiveTreemapMatrix } from './InteractiveTreemapMatrix.tsx';
+import { cyberSound } from '../utils/cyberSound.ts';
 
 interface BatchPredictorProps {
   dataset: DatasetMeta;
@@ -225,48 +228,62 @@ export const BatchPredictor: React.FC<BatchPredictorProps> = ({
 
       {/* Quick Filter Chips */}
       <div className="flex flex-wrap items-center gap-2">
-        <button
+        <motion.button
+          whileHover={{ scale: 1.03 }}
+          whileTap={{ scale: 0.97 }}
           onClick={() => setFilterRisk('all')}
-          className={`px-3 py-1.5 rounded-lg text-xs font-medium border transition-all cursor-pointer ${
+          className={`px-3 py-1.5 rounded-lg text-xs font-semibold border transition-all cursor-pointer ${
             filterRisk === 'all'
-              ? 'bg-slate-800 text-white border-cyan-500 shadow-sm'
+              ? 'bg-slate-800 text-cyan-300 border-cyan-500 shadow-md shadow-cyan-950/40'
               : 'bg-slate-900 text-slate-400 border-slate-800 hover:text-white'
           }`}
         >
           All Files ({recordsWithPred.length})
-        </button>
-        <button
+        </motion.button>
+        <motion.button
+          whileHover={{ scale: 1.03 }}
+          whileTap={{ scale: 0.97 }}
           onClick={() => setFilterRisk('high')}
-          className={`px-3 py-1.5 rounded-lg text-xs font-medium border transition-all cursor-pointer flex items-center gap-1.5 ${
+          className={`px-3 py-1.5 rounded-lg text-xs font-semibold border transition-all cursor-pointer flex items-center gap-1.5 ${
             filterRisk === 'high'
-              ? 'bg-rose-950/80 text-rose-300 border-rose-500 shadow-sm font-semibold'
+              ? 'bg-rose-950/90 text-rose-300 border-rose-500 shadow-md shadow-rose-950/40'
               : 'bg-slate-900 text-rose-400/80 border-slate-800 hover:text-rose-300'
           }`}
         >
-          <span className="h-2 w-2 rounded-full bg-rose-500 animate-pulse" />
+          <span className="h-2 w-2 rounded-full bg-rose-500 animate-ping" />
           <span>High Risk Only ({highRiskCount})</span>
-        </button>
-        <button
+        </motion.button>
+        <motion.button
+          whileHover={{ scale: 1.03 }}
+          whileTap={{ scale: 0.97 }}
           onClick={() => setFilterRisk('defective')}
-          className={`px-3 py-1.5 rounded-lg text-xs font-medium border transition-all cursor-pointer flex items-center gap-1.5 ${
+          className={`px-3 py-1.5 rounded-lg text-xs font-semibold border transition-all cursor-pointer flex items-center gap-1.5 ${
             filterRisk === 'defective'
-              ? 'bg-amber-950/80 text-amber-300 border-amber-500 shadow-sm font-semibold'
+              ? 'bg-amber-950/90 text-amber-300 border-amber-500 shadow-md shadow-amber-950/40'
               : 'bg-slate-900 text-amber-400/80 border-slate-800 hover:text-amber-300'
           }`}
         >
           <span>Known Bugs ({defectiveCount})</span>
-        </button>
-        <button
+        </motion.button>
+        <motion.button
+          whileHover={{ scale: 1.03 }}
+          whileTap={{ scale: 0.97 }}
           onClick={() => setFilterRisk('clean')}
-          className={`px-3 py-1.5 rounded-lg text-xs font-medium border transition-all cursor-pointer flex items-center gap-1.5 ${
+          className={`px-3 py-1.5 rounded-lg text-xs font-semibold border transition-all cursor-pointer flex items-center gap-1.5 ${
             filterRisk === 'clean'
-              ? 'bg-emerald-950/80 text-emerald-300 border-emerald-500 shadow-sm font-semibold'
+              ? 'bg-emerald-950/90 text-emerald-300 border-emerald-500 shadow-md shadow-emerald-950/40'
               : 'bg-slate-900 text-emerald-400/80 border-slate-800 hover:text-emerald-300'
           }`}
         >
           <span>Clean & Safe ({cleanCount})</span>
-        </button>
+        </motion.button>
       </div>
+
+      {/* Visual Heatmap Treemap Matrix */}
+      <InteractiveTreemapMatrix
+        records={filtered}
+        isBeginnerMode={isBeginnerMode}
+      />
 
       {/* Filter and Search Bar */}
       <div className="bg-slate-900 border border-slate-800 rounded-xl p-4 flex flex-col md:flex-row items-stretch md:items-center justify-between gap-3 shadow-sm">

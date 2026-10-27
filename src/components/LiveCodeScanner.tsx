@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { motion, AnimatePresence } from 'motion/react';
 import {
   Code2,
   Play,
@@ -19,6 +20,9 @@ import { analyzeSourceCode } from '../ml/codeAnalyzer.ts';
 import { MLModelManager } from '../ml/modelManager.ts';
 import { computeBeginnerHealthScore } from '../ml/beginnerFriendly.ts';
 import { MetricExplainerTooltip } from './MetricExplainerTooltip.tsx';
+import { HolographicGauge } from './HolographicGauge.tsx';
+import { InteractiveControlFlowGraph } from './InteractiveControlFlowGraph.tsx';
+import { cyberSound } from '../utils/cyberSound.ts';
 
 interface LiveCodeScannerProps {
   activeModel: TrainedModelInstance | null;
@@ -158,6 +162,8 @@ export const LiveCodeScanner: React.FC<LiveCodeScannerProps> = ({
   const [selectedSample, setSelectedSample] = useState<string>(SAMPLE_CODES[0].id);
   const [prediction, setPrediction] = useState<LivePredictionResult | null>(null);
   const [copied, setCopied] = useState<boolean>(false);
+  const [isScanning, setIsScanning] = useState<boolean>(false);
+  const [scannerVisualTab, setScannerVisualTab] = useState<'cfg' | 'hotspots'>('cfg');
 
   // AI Review state
   const [isAiLoading, setIsAiLoading] = useState<boolean>(false);
@@ -165,11 +171,21 @@ export const LiveCodeScanner: React.FC<LiveCodeScannerProps> = ({
   const [aiHeuristicData, setAiHeuristicData] = useState<any | null>(null);
 
   const runAnalysis = () => {
+    setIsScanning(true);
+    cyberSound.playLaserScan();
     const { metrics, hotspots } = analyzeSourceCode(code);
     const pred = modelManager.predictFromCodeMetrics(metrics, hotspots);
     setPrediction(pred);
     setAiReport(null);
     setAiHeuristicData(null);
+    setTimeout(() => {
+      setIsScanning(false);
+      if (pred.probability >= 0.5) {
+        cyberSound.playDefectAlert();
+      } else {
+        cyberSound.playCleanChime();
+      }
+    }, 700);
   };
 
   useEffect(() => {
@@ -179,6 +195,7 @@ export const LiveCodeScanner: React.FC<LiveCodeScannerProps> = ({
   const handleSelectSample = (sampleId: string) => {
     const sample = SAMPLE_CODES.find((s) => s.id === sampleId);
     if (sample) {
+      cyberSound.playClick();
       setSelectedSample(sampleId);
       setCode(sample.code);
     }
@@ -318,7 +335,10 @@ export const LiveCodeScanner: React.FC<LiveCodeScannerProps> = ({
             </div>
           </div>
 
-          <div className="p-3 bg-slate-950 flex-1">
+          <div className="relative p-3 bg-slate-950 flex-1 overflow-hidden">
+            {isScanning && (
+              <div className="absolute inset-x-0 h-1 bg-gradient-to-r from-transparent via-cyan-400 to-transparent shadow-[0_0_16px_#22d3ee] pointer-events-none animate-laser z-20" />
+            )}
             <textarea
               value={code}
               onChange={(e) => setCode(e.target.value)}
@@ -329,20 +349,28 @@ export const LiveCodeScanner: React.FC<LiveCodeScannerProps> = ({
             />
           </div>
 
-          <div className="bg-slate-900 px-4 py-2 border-t border-slate-800 text-[11px] text-slate-400 flex justify-between">
+          <div className="bg-slate-900 px-4 py-2 border-t border-slate-800 text-[11px] text-slate-400 flex justify-between items-center">
             <span>Model: {activeModel?.name || 'Random Forest'}</span>
-            <span>Lines: {code.split('\n').length}</span>
+            <div className="flex items-center gap-3">
+              {isScanning && (
+                <span className="text-cyan-400 font-mono text-[10px] animate-pulse flex items-center gap-1">
+                  <span className="h-1.5 w-1.5 rounded-full bg-cyan-400 animate-ping" />
+                  AST Scanning...
+                </span>
+              )}
+              <span>Lines: {code.split('\n').length}</span>
+            </div>
           </div>
         </div>
 
         {/* Right Column: Prediction & Metric Gauge */}
         <div className="lg:col-span-5 space-y-4">
-          {/* Beginner-Friendly Code Health Card */}
+          {/* Beginner-Friendly Code Health Card with Holographic Gauge */}
           {prediction && isBeginnerMode && beginnerHealth && (
-            <div className="bg-slate-900 border border-slate-800 rounded-xl p-5 shadow-sm space-y-4">
-              <div className="flex items-center justify-between border-b border-slate-800 pb-3">
+            <div className="bg-slate-900 border border-slate-800 rounded-xl p-5 shadow-xl space-y-4">
+              <div className="flex items-center justify-between border-b border-slate-800 pb-2">
                 <span className="text-xs uppercase tracking-wider text-slate-400 font-semibold">
-                  Overall Code Health Grade
+                  Defect Risk & Health Speedometer
                 </span>
                 <span
                   className={`text-xs px-2.5 py-0.5 rounded-full font-bold border ${getRiskBadgeColor(
@@ -353,39 +381,12 @@ export const LiveCodeScanner: React.FC<LiveCodeScannerProps> = ({
                 </span>
               </div>
 
-              {/* Big Grade & Bug Chance */}
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-3">
-                  <div
-                    className={`h-14 w-14 rounded-2xl flex items-center justify-center font-extrabold text-2xl border shadow-lg ${
-                      beginnerHealth.grade === 'A+' || beginnerHealth.grade === 'A'
-                        ? 'bg-emerald-950 border-emerald-500 text-emerald-400 shadow-emerald-950/40'
-                        : beginnerHealth.grade === 'B'
-                        ? 'bg-cyan-950 border-cyan-500 text-cyan-400 shadow-cyan-950/40'
-                        : beginnerHealth.grade === 'C'
-                        ? 'bg-amber-950 border-amber-500 text-amber-400 shadow-amber-950/40'
-                        : 'bg-rose-950 border-rose-500 text-rose-400 shadow-rose-950/40'
-                    }`}
-                  >
-                    {beginnerHealth.grade}
-                  </div>
-                  <div>
-                    <div className="text-lg font-bold text-white">
-                      {beginnerHealth.riskLevelText}
-                    </div>
-                    <div className="text-xs text-slate-400">
-                      {(prediction.probability * 100).toFixed(0)}% estimated bug risk
-                    </div>
-                  </div>
-                </div>
-
-                <div className="text-right">
-                  <span className="text-2xl font-bold font-mono text-white">
-                    {(prediction.probability * 100).toFixed(0)}%
-                  </span>
-                  <div className="text-[10px] text-slate-400">Bug Probability</div>
-                </div>
-              </div>
+              {/* Holographic Speedometer Gauge */}
+              <HolographicGauge
+                probability={prediction.probability}
+                threshold={activeModel?.result.testMetrics.threshold || 0.5}
+                grade={beginnerHealth.grade}
+              />
 
               {/* Readability & Testability Bars */}
               <div className="space-y-2.5 pt-1">
@@ -660,6 +661,13 @@ export const LiveCodeScanner: React.FC<LiveCodeScannerProps> = ({
           )}
         </div>
       </div>
+
+      {/* Interactive Control Flow Graph (CFG) Visualizer */}
+      <InteractiveControlFlowGraph
+        prediction={prediction}
+        code={code}
+        isBeginnerMode={isBeginnerMode}
+      />
 
       {/* AI Review Output Container */}
       {(aiReport || aiHeuristicData) && (

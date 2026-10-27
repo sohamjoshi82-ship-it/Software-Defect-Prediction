@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useMemo } from 'react';
+import { motion, AnimatePresence } from 'motion/react';
 import { Header } from './components/Header.tsx';
 import { DashboardOverview } from './components/DashboardOverview.tsx';
 import { TrainingStudio } from './components/TrainingStudio.tsx';
@@ -107,53 +108,63 @@ export default function App() {
 
       {/* Main Content Area */}
       <main className="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 py-6">
-        {activeTab === 'dashboard' && (
-          <DashboardOverview
-            dataset={currentDataset}
-            activeModel={activeModel}
-            onNavigateTab={setActiveTab}
-            isBeginnerMode={isBeginnerMode}
-          />
-        )}
+        <AnimatePresence mode="wait">
+          <motion.div
+            key={activeTab}
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -10 }}
+            transition={{ duration: 0.22, ease: 'easeOut' }}
+          >
+            {activeTab === 'dashboard' && (
+              <DashboardOverview
+                dataset={currentDataset}
+                activeModel={activeModel}
+                onNavigateTab={setActiveTab}
+                isBeginnerMode={isBeginnerMode}
+              />
+            )}
 
-        {activeTab === 'training' && (
-          <TrainingStudio
-            dataset={currentDataset}
-            activeModel={activeModel}
-            modelManager={modelManager}
-            onModelTrained={(model) => {
-              setActiveModel(model);
-              showNotification(`Active model updated: ${model.name}`);
-            }}
-            isTraining={isTraining}
-            setIsTraining={setIsTraining}
-            isBeginnerMode={isBeginnerMode}
-          />
-        )}
+            {activeTab === 'training' && (
+              <TrainingStudio
+                dataset={currentDataset}
+                activeModel={activeModel}
+                modelManager={modelManager}
+                onModelTrained={(model) => {
+                  setActiveModel(model);
+                  showNotification(`Active model updated: ${model.name}`);
+                }}
+                isTraining={isTraining}
+                setIsTraining={setIsTraining}
+                isBeginnerMode={isBeginnerMode}
+              />
+            )}
 
-        {activeTab === 'evaluation' && (
-          <EvaluationStudio
-            activeModel={activeModel}
-            isBeginnerMode={isBeginnerMode}
-          />
-        )}
+            {activeTab === 'evaluation' && (
+              <EvaluationStudio
+                activeModel={activeModel}
+                isBeginnerMode={isBeginnerMode}
+              />
+            )}
 
-        {activeTab === 'scanner' && (
-          <LiveCodeScanner
-            activeModel={activeModel}
-            modelManager={modelManager}
-            isBeginnerMode={isBeginnerMode}
-          />
-        )}
+            {activeTab === 'scanner' && (
+              <LiveCodeScanner
+                activeModel={activeModel}
+                modelManager={modelManager}
+                isBeginnerMode={isBeginnerMode}
+              />
+            )}
 
-        {activeTab === 'batch' && (
-          <BatchPredictor
-            dataset={currentDataset}
-            activeModel={activeModel}
-            onCustomDatasetLoaded={handleCustomDatasetLoaded}
-            isBeginnerMode={isBeginnerMode}
-          />
-        )}
+            {activeTab === 'batch' && (
+              <BatchPredictor
+                dataset={currentDataset}
+                activeModel={activeModel}
+                onCustomDatasetLoaded={handleCustomDatasetLoaded}
+                isBeginnerMode={isBeginnerMode}
+              />
+            )}
+          </motion.div>
+        </AnimatePresence>
       </main>
 
       {/* Footer */}

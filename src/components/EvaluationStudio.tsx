@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { motion } from 'motion/react';
 import {
   TrendingUp,
   Sliders,
@@ -12,6 +13,7 @@ import {
 } from 'lucide-react';
 import type { TrainedModelInstance } from '../ml/types.ts';
 import { computeMetricsFromScores } from '../ml/metrics.ts';
+import { DynamicKdeDistribution } from './DynamicKdeDistribution.tsx';
 
 interface EvaluationStudioProps {
   activeModel: TrainedModelInstance | null;
@@ -173,6 +175,13 @@ export const EvaluationStudio: React.FC<EvaluationStudioProps> = ({
           </div>
         </div>
       </div>
+
+      {/* Dynamic Animated KDE Distribution Curve */}
+      <DynamicKdeDistribution
+        threshold={threshold}
+        onThresholdChange={setThreshold}
+        rocAuc={result.testMetrics.rocAuc}
+      />
 
       {/* Curves & Confusion Matrix Grid */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">

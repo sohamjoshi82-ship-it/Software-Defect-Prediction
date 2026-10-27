@@ -1,4 +1,5 @@
 import React from 'react';
+import { motion } from 'motion/react';
 import {
   ShieldAlert,
   ShieldCheck,
@@ -11,9 +12,13 @@ import {
   Cpu,
   Layers,
   ArrowRight,
+  Radar,
+  Sparkles,
 } from 'lucide-react';
 import type { DatasetMeta, TrainedModelInstance } from '../ml/types.ts';
 import { MetricExplainerTooltip } from './MetricExplainerTooltip.tsx';
+import { CyberRadarCanvas } from './CyberRadarCanvas.tsx';
+import { AnimatedPipelineVisualizer } from './AnimatedPipelineVisualizer.tsx';
 
 interface DashboardOverviewProps {
   dataset: DatasetMeta;
@@ -38,19 +43,26 @@ export const DashboardOverview: React.FC<DashboardOverviewProps> = ({
 
   return (
     <div className="space-y-6">
-      {/* Hero Welcome banner */}
-      <div className="relative overflow-hidden rounded-2xl bg-gradient-to-r from-slate-900 via-indigo-950/60 to-slate-900 border border-slate-800 p-6 shadow-xl">
-        <div className="absolute -right-12 -top-12 h-64 w-64 rounded-full bg-cyan-500/10 blur-3xl pointer-events-none" />
-        <div className="relative z-10 flex flex-col md:flex-row items-start md:items-center justify-between gap-6">
-          <div className="space-y-2 max-w-2xl">
-            <div className="inline-flex items-center gap-2 px-2.5 py-1 rounded-full bg-cyan-950/90 border border-cyan-800 text-cyan-300 text-xs font-medium">
-              <Zap className="h-3 w-3" />
-              <span>{isBeginnerMode ? 'Simple Bug Detection Guide' : 'Production ML Quality Assurance'}</span>
+      {/* Hero Welcome banner with Interactive Cyber Radar */}
+      <motion.div
+        initial={{ opacity: 0, y: 12 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.35 }}
+        className="relative overflow-hidden rounded-2xl bg-gradient-to-r from-slate-950 via-slate-900 to-indigo-950/80 border border-slate-800 p-6 shadow-2xl bg-cyber-grid"
+      >
+        <div className="absolute -right-16 -top-16 h-72 w-72 rounded-full bg-cyan-500/10 blur-3xl pointer-events-none" />
+        <div className="absolute left-1/3 -bottom-16 h-56 w-56 rounded-full bg-indigo-500/10 blur-3xl pointer-events-none" />
+
+        <div className="relative z-10 flex flex-col lg:flex-row items-start lg:items-center justify-between gap-6">
+          <div className="space-y-3 max-w-2xl">
+            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-cyan-950/90 border border-cyan-800/80 text-cyan-300 text-xs font-semibold shadow-sm">
+              <span className="h-2 w-2 rounded-full bg-cyan-400 animate-ping" />
+              <span>{isBeginnerMode ? 'Empirical Bug Detection Intelligence' : 'Production Machine Learning Quality Assurance'}</span>
             </div>
             <h2 className="text-2xl sm:text-3xl font-extrabold text-white tracking-tight">
               {isBeginnerMode ? 'Find Hidden Bugs in Your Code with AI' : 'Software Defect Prediction Workbench'}
             </h2>
-            <p className="text-sm text-slate-300 leading-relaxed">
+            <p className="text-xs sm:text-sm text-slate-300 leading-relaxed">
               {isBeginnerMode ? (
                 <>
                   Stop bugs <span className="text-cyan-300 font-semibold">before they reach users</span>.
@@ -59,114 +71,148 @@ export const DashboardOverview: React.FC<DashboardOverviewProps> = ({
                 </>
               ) : (
                 <>
-                  Detect bugs <span className="text-cyan-300 font-semibold">before release</span> by
+                  Detect software defects <span className="text-cyan-300 font-semibold">prior to production release</span> by
                   applying machine learning classifiers to McCabe Cyclomatic Complexity, Halstead Software
                   Science, and Object-Oriented CK metrics. Pre-trained on empirical NASA MDP flight software & PROMISE repositories.
                 </>
               )}
             </p>
+
+            <div className="flex flex-wrap sm:flex-nowrap gap-3 pt-1">
+              <motion.button
+                whileHover={{ scale: 1.03, y: -2 }}
+                whileTap={{ scale: 0.98 }}
+                onClick={() => onNavigateTab('scanner')}
+                className="flex items-center gap-2 px-4 py-2.5 rounded-xl bg-gradient-to-r from-cyan-500 via-indigo-600 to-indigo-700 hover:from-cyan-400 hover:to-indigo-600 text-white font-bold text-xs shadow-lg shadow-cyan-950/70 cursor-pointer transition-all"
+              >
+                <Code2 className="h-4 w-4" />
+                <span>{isBeginnerMode ? 'Scan Code Now' : 'Launch Code Scanner'}</span>
+                <ArrowRight className="h-3.5 w-3.5" />
+              </motion.button>
+              <motion.button
+                whileHover={{ scale: 1.03, y: -2 }}
+                whileTap={{ scale: 0.98 }}
+                onClick={() => onNavigateTab('training')}
+                className="flex items-center gap-2 px-4 py-2.5 rounded-xl bg-slate-900/90 hover:bg-slate-800 border border-slate-700/80 text-slate-200 font-medium text-xs cursor-pointer transition-all shadow-sm"
+              >
+                <Cpu className="h-4 w-4 text-cyan-400" />
+                <span>{isBeginnerMode ? 'Compare AI Models' : 'Compare ML Models'}</span>
+              </motion.button>
+            </div>
           </div>
 
-          <div className="flex flex-wrap sm:flex-nowrap gap-3 shrink-0">
-            <button
-              onClick={() => onNavigateTab('scanner')}
-              className="flex items-center gap-2 px-4 py-2.5 rounded-xl bg-gradient-to-r from-cyan-600 to-indigo-600 hover:from-cyan-500 hover:to-indigo-500 text-white font-medium text-xs shadow-lg shadow-cyan-950/50 cursor-pointer transition-all"
-            >
-              <Code2 className="h-4 w-4" />
-              <span>{isBeginnerMode ? 'Check My Code Now' : 'Scan Source Code'}</span>
-              <ArrowRight className="h-3.5 w-3.5" />
-            </button>
-            <button
-              onClick={() => onNavigateTab('training')}
-              className="flex items-center gap-2 px-4 py-2.5 rounded-xl bg-slate-800 hover:bg-slate-700 border border-slate-700 text-slate-200 font-medium text-xs cursor-pointer transition-all"
-            >
-              <Cpu className="h-4 w-4" />
-              <span>{isBeginnerMode ? 'Compare AI Models' : 'Compare Models'}</span>
-            </button>
+          {/* Integrated Interactive Live Cyber Radar */}
+          <div className="shrink-0 mx-auto lg:mx-0">
+            <CyberRadarCanvas
+              records={dataset.records}
+              width={220}
+              height={220}
+            />
           </div>
         </div>
-      </div>
+      </motion.div>
 
-      {/* KPI Stats Grid with plain English translations */}
+      {/* KPI Stats Grid with animated hover effects */}
       <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-3.5">
-        <div className="bg-slate-900 border border-slate-800 rounded-xl p-4 shadow-sm">
+        <motion.div
+          whileHover={{ y: -3, scale: 1.02 }}
+          className="bg-slate-900/90 border border-slate-800 hover:border-cyan-500/50 rounded-xl p-4 shadow-sm transition-all"
+        >
           <div className="flex items-center justify-between text-slate-400 text-xs mb-1">
             <span>Overall Accuracy</span>
             <Activity className="h-3.5 w-3.5 text-cyan-400" />
           </div>
-          <div className="text-2xl font-bold text-white">
+          <div className="text-2xl font-bold font-mono text-white">
             {metrics ? `${(metrics.accuracy * 100).toFixed(1)}%` : '--'}
           </div>
           <div className="text-[11px] text-slate-400 mt-1">
             {isBeginnerMode ? 'Correct decisions' : 'Test holdout split'}
           </div>
-        </div>
+        </motion.div>
 
-        <div className="bg-slate-900 border border-slate-800 rounded-xl p-4 shadow-sm">
+        <motion.div
+          whileHover={{ y: -3, scale: 1.02 }}
+          className="bg-slate-900/90 border border-slate-800 hover:border-rose-500/50 rounded-xl p-4 shadow-sm transition-all"
+        >
           <div className="flex items-center justify-between text-slate-400 text-xs mb-1">
             <span>{isBeginnerMode ? 'Bugs Caught' : 'Defect Recall (PD)'}</span>
             <ShieldAlert className="h-3.5 w-3.5 text-rose-400" />
           </div>
-          <div className="text-2xl font-bold text-rose-300">
+          <div className="text-2xl font-bold font-mono text-rose-300">
             {metrics ? `${(metrics.recall * 100).toFixed(1)}%` : '--'}
           </div>
           <div className="text-[11px] text-slate-400 mt-1">
             {isBeginnerMode ? 'True bugs detected' : 'Probability of detection'}
           </div>
-        </div>
+        </motion.div>
 
-        <div className="bg-slate-900 border border-slate-800 rounded-xl p-4 shadow-sm">
+        <motion.div
+          whileHover={{ y: -3, scale: 1.02 }}
+          className="bg-slate-900/90 border border-slate-800 hover:border-amber-500/50 rounded-xl p-4 shadow-sm transition-all"
+        >
           <div className="flex items-center justify-between text-slate-400 text-xs mb-1">
             <span>{isBeginnerMode ? 'False Alarms' : 'False Alarm (PF)'}</span>
             <AlertTriangle className="h-3.5 w-3.5 text-amber-400" />
           </div>
-          <div className="text-2xl font-bold text-amber-300">
+          <div className="text-2xl font-bold font-mono text-amber-300">
             {metrics ? `${(metrics.falseAlarmRate * 100).toFixed(1)}%` : '--'}
           </div>
           <div className="text-[11px] text-slate-400 mt-1">
             {isBeginnerMode ? 'Safe code flagged' : 'Inspection overhead'}
           </div>
-        </div>
+        </motion.div>
 
-        <div className="bg-slate-900 border border-slate-800 rounded-xl p-4 shadow-sm">
+        <motion.div
+          whileHover={{ y: -3, scale: 1.02 }}
+          className="bg-slate-900/90 border border-slate-800 hover:border-indigo-500/50 rounded-xl p-4 shadow-sm transition-all"
+        >
           <div className="flex items-center justify-between text-slate-400 text-xs mb-1">
             <span>{isBeginnerMode ? 'AI Reliability' : 'ROC-AUC'}</span>
             <TrendingUp className="h-3.5 w-3.5 text-indigo-400" />
           </div>
-          <div className="text-2xl font-bold text-indigo-300">
+          <div className="text-2xl font-bold font-mono text-indigo-300">
             {metrics ? (isBeginnerMode ? `${(metrics.rocAuc * 100).toFixed(0)}% (A+)` : metrics.rocAuc.toFixed(3)) : '--'}
           </div>
           <div className="text-[11px] text-slate-400 mt-1">
             {isBeginnerMode ? 'Diagnostic quality' : 'Discriminative power'}
           </div>
-        </div>
+        </motion.div>
 
-        <div className="bg-slate-900 border border-slate-800 rounded-xl p-4 shadow-sm">
+        <motion.div
+          whileHover={{ y: -3, scale: 1.02 }}
+          className="bg-slate-900/90 border border-slate-800 hover:border-emerald-500/50 rounded-xl p-4 shadow-sm transition-all"
+        >
           <div className="flex items-center justify-between text-slate-400 text-xs mb-1">
             <span>F1-Score</span>
             <Award className="h-3.5 w-3.5 text-emerald-400" />
           </div>
-          <div className="text-2xl font-bold text-emerald-300">
+          <div className="text-2xl font-bold font-mono text-emerald-300">
             {metrics ? metrics.f1Score.toFixed(3) : '--'}
           </div>
           <div className="text-[11px] text-slate-400 mt-1">
             {isBeginnerMode ? 'Overall balance' : 'Harmonic mean P/R'}
           </div>
-        </div>
+        </motion.div>
 
-        <div className="bg-slate-900 border border-slate-800 rounded-xl p-4 shadow-sm">
+        <motion.div
+          whileHover={{ y: -3, scale: 1.02 }}
+          className="bg-slate-900/90 border border-slate-800 hover:border-purple-500/50 rounded-xl p-4 shadow-sm transition-all"
+        >
           <div className="flex items-center justify-between text-slate-400 text-xs mb-1">
             <span>{isBeginnerMode ? 'Balance Score' : 'MCC Score'}</span>
             <ShieldCheck className="h-3.5 w-3.5 text-purple-400" />
           </div>
-          <div className="text-2xl font-bold text-purple-300">
+          <div className="text-2xl font-bold font-mono text-purple-300">
             {metrics ? metrics.mcc.toFixed(3) : '--'}
           </div>
           <div className="text-[11px] text-slate-400 mt-1">
             {isBeginnerMode ? 'Guards against bias' : 'Matthews correlation'}
           </div>
-        </div>
+        </motion.div>
       </div>
+
+      {/* Interactive Machine Learning Dataflow & Pipeline Visualizer */}
+      <AnimatedPipelineVisualizer />
 
       {/* Dataset & Model Architecture Breakdown */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">

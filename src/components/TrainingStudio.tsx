@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { motion } from 'motion/react';
 import {
   Cpu,
   Layers,
@@ -20,6 +21,8 @@ import type {
   TrainedModelInstance,
 } from '../ml/types.ts';
 import { MLModelManager } from '../ml/modelManager.ts';
+import { AnimatedTrainingMatrix } from './AnimatedTrainingMatrix.tsx';
+import { cyberSound } from '../utils/cyberSound.ts';
 
 interface TrainingStudioProps {
   dataset: DatasetMeta;
@@ -101,6 +104,7 @@ export const TrainingStudio: React.FC<TrainingStudioProps> = ({
     setUseSmote(true);
     setTestSplit(25);
     setIsTraining(true);
+    cyberSound.playLaserScan();
     setTimeout(() => {
       try {
         const trained = modelManager.trainModel({
@@ -117,10 +121,11 @@ export const TrainingStudio: React.FC<TrainingStudioProps> = ({
           },
         });
         onModelTrained(trained);
+        cyberSound.playCleanChime();
       } finally {
         setIsTraining(false);
       }
-    }, 50);
+    }, 450);
   };
   const [testSplit, setTestSplit] = useState<number>(25); // 25% test
   const [useSmote, setUseSmote] = useState<boolean>(true);
@@ -146,6 +151,7 @@ export const TrainingStudio: React.FC<TrainingStudioProps> = ({
 
   const handleTrain = () => {
     setIsTraining(true);
+    cyberSound.playLaserScan();
     setTimeout(() => {
       try {
         const trained = modelManager.trainModel({
@@ -162,10 +168,11 @@ export const TrainingStudio: React.FC<TrainingStudioProps> = ({
           },
         });
         onModelTrained(trained);
+        cyberSound.playCleanChime();
       } finally {
         setIsTraining(false);
       }
-    }, 50);
+    }, 450);
   };
 
   const handleRunAllBenchmark = async () => {
@@ -306,12 +313,14 @@ export const TrainingStudio: React.FC<TrainingStudioProps> = ({
           {ALGORITHMS.map((algo) => {
             const isSelected = selectedAlgo === algo.id;
             return (
-              <div
+              <motion.div
                 key={algo.id}
+                whileHover={{ y: -3, scale: 1.02 }}
+                whileTap={{ scale: 0.98 }}
                 onClick={() => setSelectedAlgo(algo.id)}
                 className={`p-4 rounded-xl border transition-all cursor-pointer relative ${
                   isSelected
-                    ? 'bg-slate-800/90 border-cyan-500 shadow-md shadow-cyan-950/40 ring-1 ring-cyan-500/40'
+                    ? 'bg-slate-800/95 border-cyan-400 shadow-xl shadow-cyan-950/60 ring-1 ring-cyan-400/50'
                     : 'bg-slate-900 border-slate-800 hover:border-slate-700 hover:bg-slate-850'
                 }`}
               >
@@ -333,7 +342,7 @@ export const TrainingStudio: React.FC<TrainingStudioProps> = ({
                 <div className="mt-2 text-[11px] text-cyan-400/90 font-mono">
                   {algo.strengths}
                 </div>
-              </div>
+              </motion.div>
             );
           })}
         </div>
@@ -596,6 +605,13 @@ export const TrainingStudio: React.FC<TrainingStudioProps> = ({
           )}
         </div>
       </div>
+
+      {/* Real-Time Animated Convergence Matrix HUD */}
+      <AnimatedTrainingMatrix
+        model={activeModel}
+        isTraining={isTraining}
+        algorithmName={selectedAlgo.replace('_', ' ').toUpperCase()}
+      />
 
       {/* Model Benchmark Leaderboard */}
       <div className="bg-slate-900 border border-slate-800 rounded-xl p-5 space-y-4">

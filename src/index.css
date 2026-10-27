@@ -1,1 +1,72 @@
 @import "tailwindcss";
+
+@layer utilities {
+  .bg-cyber-grid {
+    background-size: 32px 32px;
+    background-image: 
+      linear-gradient(to right, rgba(255, 255, 255, 0.03) 1px, transparent 1px),
+      linear-gradient(to bottom, rgba(255, 255, 255, 0.03) 1px, transparent 1px);
+  }
+
+  .bg-cyber-dots {
+    background-image: radial-gradient(rgba(6, 182, 212, 0.15) 1px, transparent 1px);
+    background-size: 20px 20px;
+  }
+}
+
+@keyframes laser-sweep {
+  0% {
+    top: 0%;
+    opacity: 0.9;
+  }
+  50% {
+    opacity: 1;
+  }
+  100% {
+    top: 100%;
+    opacity: 0.9;
+  }
+}
+
+@keyframes radar-spin {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+@keyframes float-gentle {
+  0%, 100% {
+    transform: translateY(0px);
+  }
+  50% {
+    transform: translateY(-5px);
+  }
+}
+
+@keyframes shimmer-slide {
+  0% {
+    transform: translateX(-100%);
+  }
+  100% {
+    transform: translateX(200%);
+  }
+}
+
+.animate-laser {
+  animation: laser-sweep 2.4s ease-in-out infinite alternate;
+}
+
+.animate-radar {
+  animation: radar-spin 8s linear infinite;
+}
+
+.animate-float {
+  animation: float-gentle 4s ease-in-out infinite;
+}
+
+.animate-shimmer {
+  animation: shimmer-slide 2.5s infinite;
+}
