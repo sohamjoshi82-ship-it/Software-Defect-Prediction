@@ -41,23 +41,33 @@ app.post('/api/gemini/review-defect', async (req, res) => {
     return res.status(400).json({ error: 'Code content is required' });
   }
 
-  // If no AI key configured, provide structured heuristic advice
-  if (!aiClient || !apiKey) {
-    return res.json({
-      success: true,
-      mode: 'heuristic',
-      summary: `Defect risk evaluated at ${riskLevel} (${(probability * 100).toFixed(1)}% probability). Primary drivers: Cyclomatic Complexity = ${metrics?.cyclomaticComplexity || 'N/A'}, Halstead Effort = ${metrics?.halsteadEffort || 'N/A'}.`,
-      rootCauses: hotspots?.map((h: any) => `${h.metric}: ${h.recommendation}`) || [
-        'High branch density increases the test state explosion.',
-        'Consider splitting multi-branch conditional cascades into separate functions.',
-      ],
-      refactoredCode: `// Heuristic recommendation:\n// Split nested conditionals using guard clauses\n// Extract heavy logic into single-responsibility helpers.`,
-      qualityChecklist: [
-        'Enforce cyclomatic complexity v(G) <= 10 per method',
-        'Limit nesting depth to maximum 3 levels',
-        'Add boundary unit tests covering all conditional branches',
-      ],
-    });
+  const fallbackHeuristic = {
+    success: true,
+    mode: 'heuristic',
+    summary: `Defect risk evaluated at ${riskLevel} (${(probability * 100).toFixed(1)}% probability). Primary drivers: Cyclomatic Complexity = ${metrics?.cyclomaticComplexity || 'N/A'}, Halstead Effort = ${metrics?.halsteadEffort ? metrics.halsteadEffort.toLocaleString() : 'N/A'}.`,
+    rootCauses: hotspots && hotspots.length > 0
+      ? hotspots.map((h: any) => `${h.metric}: ${h.recommendation}`)
+      : [
+          'High branch density increases the test state explosion exponentially.',
+          'Nested decision structures make code difficult to reason about and maintain.',
+          'Consider separating state validation from business calculations.',
+        ],
+    refactoredCode: `// Recommended Refactoring Pattern:
+// 1. Invert nested if-checks into top-level guard clauses
+// 2. Extract nested loops or switch blocks into standalone helper functions
+// 3. Keep cyclomatic complexity v(G) <= 10 for deterministic unit testing.`,
+    qualityChecklist: [
+      'Enforce cyclomatic complexity v(G) <= 10 per method in CI/CD linter',
+      'Limit nesting depth to maximum 3 indentation levels',
+      'Add parameterized unit tests covering all conditional boundary paths',
+    ],
+  };
+
+  const isRealKey = apiKey && apiKey !== 'MY_GEMINI_API_KEY' && apiKey.trim().length > 10;
+
+  // If no valid AI key configured, provide structured heuristic advice
+  if (!aiClient || !isRealKey) {
+    return res.json(fallbackHeuristic);
   }
 
   try {
@@ -90,10 +100,17 @@ Provide an authoritative, actionable software engineering report. Include:
 
 Format your response in clear, concise markdown with headings.`;
 
-    const response = await aiClient.models.generateContent({
+    // 8-second timeout race to prevent hanging
+    const aiPromise = aiClient.models.generateContent({
       model: 'gemini-3.8-flash',
       contents: prompt,
     });
+
+    const timeoutPromise = new Promise<never>((_, reject) =>
+      setTimeout(() => reject(new Error('AI response timed out')), 8000)
+    );
+
+    const response = await Promise.race([aiPromise, timeoutPromise]);
 
     return res.json({
       success: true,
@@ -101,11 +118,8 @@ Format your response in clear, concise markdown with headings.`;
       report: response.text,
     });
   } catch (error: any) {
-    console.error('Gemini API call failed:', error);
-    return res.status(500).json({
-      error: 'Failed to generate AI defect explanation',
-      details: error.message,
-    });
+    console.warn('Gemini API call failed or timed out, returning heuristic report:', error.message);
+    return res.json(fallbackHeuristic);
   }
 });
 

@@ -230,6 +230,9 @@ export const LiveCodeScanner: React.FC<LiveCodeScannerProps> = ({
           probability: prediction.probability,
         }),
       });
+      if (!res.ok) {
+        throw new Error(`Server returned HTTP ${res.status}`);
+      }
       const data = await res.json();
       if (data.mode === 'gemini') {
         setAiReport(data.report);
@@ -237,7 +240,25 @@ export const LiveCodeScanner: React.FC<LiveCodeScannerProps> = ({
         setAiHeuristicData(data);
       }
     } catch (err) {
-      console.error('Failed to get AI review:', err);
+      console.warn('API review endpoint unavailable or timed out, using client-side QA diagnostics:', err);
+      // Guaranteed client-side fallback so user always gets a rich explanation
+      setAiHeuristicData({
+        success: true,
+        mode: 'heuristic',
+        summary: `Empirical QA Analysis: Defect risk evaluated at ${prediction.riskLevel} (${(prediction.probability * 100).toFixed(1)}%). Cyclomatic complexity is ${prediction.metrics.cyclomaticComplexity} with max nesting depth of ${prediction.metrics.maxNestingDepth}.`,
+        rootCauses: prediction.hotspots.length > 0
+          ? prediction.hotspots.map((h) => `${h.metric}: ${h.recommendation}`)
+          : ['High branching density increases test state explosion exponentially.'],
+        refactoredCode: `// Suggested Clean Architecture Refactoring:
+// 1. Invert nested if/else blocks to return early (guard clauses)
+// 2. Extract nested loops or switch statements into dedicated helpers
+// 3. Keep method complexity v(G) <= 10 for complete branch testing.`,
+        qualityChecklist: [
+          'Enforce cyclomatic complexity v(G) <= 10 per method',
+          'Avoid nesting deeper than 3 indentation levels',
+          'Add automated unit test assertions covering each conditional branch',
+        ],
+      });
     } finally {
       setIsAiLoading(false);
     }
