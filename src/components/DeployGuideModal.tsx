@@ -165,7 +165,7 @@ CMD ["npm", "run", "start"]`;
                         <div><span className="text-slate-500">Framework:</span> <span className="text-emerald-400">Vite</span></div>
                         <div><span className="text-slate-500">Build Command:</span> <span className="text-cyan-300">vite build</span></div>
                         <div><span className="text-slate-500">Output Dir:</span> <span className="text-cyan-300">dist</span></div>
-                        <div><span className="text-slate-500">Install:</span> <span className="text-slate-300">npm install</span></div>
+                        <div><span className="text-slate-500">Install:</span> <span className="text-emerald-400">npm install --legacy-peer-deps</span></div>
                       </div>
                     </div>
                   </div>

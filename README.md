@@ -27,7 +27,7 @@ npm install -g vercel
 vercel --prod
 ```
 
-`vercel.json` and the serverless API function `/api/gemini/review-defect.ts` are already configured with CORS and automatic fallbacks.
+`vercel.json` (configured with `installCommand: "npm install --legacy-peer-deps"`), `.npmrc` (`legacy-peer-deps=true`), and the serverless API function `/api/gemini/review-defect.ts` are already included to guarantee clean installation and deployment on Vercel without peer-dependency conflicts.
 
 ---
 
