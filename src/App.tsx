@@ -8,6 +8,8 @@ import { LiveCodeScanner } from './components/LiveCodeScanner.tsx';
 import { BatchPredictor } from './components/BatchPredictor.tsx';
 import { QuickStartWizardModal } from './components/QuickStartWizardModal.tsx';
 import { MetricsEncyclopediaModal } from './components/MetricsEncyclopediaModal.tsx';
+import { DeployGuideModal } from './components/DeployGuideModal.tsx';
+import { ErrorBoundary } from './components/ErrorBoundary.tsx';
 import { BENCHMARK_DATASETS } from './ml/datasets.ts';
 import { MLModelManager } from './ml/modelManager.ts';
 import type { DatasetMeta, TrainedModelInstance } from './ml/types.ts';
@@ -21,6 +23,7 @@ export default function App() {
   const [isTraining, setIsTraining] = useState<boolean>(false);
   const [isGuideOpen, setIsGuideOpen] = useState<boolean>(false);
   const [isWizardOpen, setIsWizardOpen] = useState<boolean>(false);
+  const [isDeployOpen, setIsDeployOpen] = useState<boolean>(false);
   const [isBeginnerMode, setIsBeginnerMode] = useState<boolean>(true);
   const [notification, setNotification] = useState<string | null>(null);
 
@@ -82,21 +85,23 @@ export default function App() {
   };
 
   return (
-    <div className="min-h-screen bg-slate-950 text-slate-100 flex flex-col font-sans selection:bg-cyan-900 selection:text-white">
-      {/* Top Header */}
-      <Header
-        currentDataset={currentDataset}
-        onSelectDataset={setCurrentDataset}
-        activeModel={activeModel}
-        onRetrain={handleRetrain}
-        onOpenGuide={() => setIsGuideOpen(true)}
-        onOpenWizard={() => setIsWizardOpen(true)}
-        activeTab={activeTab}
-        setActiveTab={setActiveTab}
-        isTraining={isTraining}
-        isBeginnerMode={isBeginnerMode}
-        setIsBeginnerMode={setIsBeginnerMode}
-      />
+    <ErrorBoundary>
+      <div className="min-h-screen bg-slate-950 text-slate-100 flex flex-col font-sans selection:bg-cyan-900 selection:text-white">
+        {/* Top Header */}
+        <Header
+          currentDataset={currentDataset}
+          onSelectDataset={setCurrentDataset}
+          activeModel={activeModel}
+          onRetrain={handleRetrain}
+          onOpenGuide={() => setIsGuideOpen(true)}
+          onOpenWizard={() => setIsWizardOpen(true)}
+          onOpenDeploy={() => setIsDeployOpen(true)}
+          activeTab={activeTab}
+          setActiveTab={setActiveTab}
+          isTraining={isTraining}
+          isBeginnerMode={isBeginnerMode}
+          setIsBeginnerMode={setIsBeginnerMode}
+        />
 
       {/* Toast Notification Banner */}
       {notification && (
@@ -187,6 +192,12 @@ export default function App() {
               60-Second Quick Tour
             </button>
             <button
+              onClick={() => setIsDeployOpen(true)}
+              className="hover:text-cyan-400 text-cyan-300 font-medium underline underline-offset-2 cursor-pointer"
+            >
+              Deploy to Vercel
+            </button>
+            <button
               onClick={() => setIsGuideOpen(true)}
               className="hover:text-cyan-400 underline underline-offset-2 cursor-pointer"
             >
@@ -211,6 +222,13 @@ export default function App() {
         isOpen={isGuideOpen}
         onClose={() => setIsGuideOpen(false)}
       />
+
+      {/* 1-Click Vercel / Cloud Deployment Guide Modal */}
+      <DeployGuideModal
+        isOpen={isDeployOpen}
+        onClose={() => setIsDeployOpen(false)}
+      />
     </div>
+    </ErrorBoundary>
   );
 }

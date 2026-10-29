@@ -151,6 +151,48 @@ int calculateThrustVectorClean(float currentPitch, float targetPitch, float airs
     }
 }`,
   },
+  {
+    id: 'python_etl',
+    name: 'Python ETL Ingestion Pipeline (Python)',
+    language: 'Python',
+    expectedRisk: 'High Risk',
+    code: `def ingest_batch_records(records, retry_limit=3, strict_schema=False):
+    """Parses and ingests telemetry data with nested retry loops and fallbacks."""
+    processed = []
+    failed_count = 0
+    
+    for record in records:
+        success = False
+        attempt = 0
+        
+        while attempt < retry_limit and not success:
+            try:
+                if not record or not isinstance(record, dict):
+                    failed_count += 1
+                    break
+                
+                payload_type = record.get("type", "standard")
+                if payload_type == "telemetry":
+                    if "voltage" in record and record["voltage"] < 0:
+                        raise ValueError("Negative voltage anomalous reading")
+                    processed.append(record["data"])
+                    success = True
+                elif payload_type == "command":
+                    if strict_schema:
+                        if "checksum" not in record or not record["checksum"]:
+                            raise KeyError("Missing critical auth checksum")
+                    processed.append(record["command"])
+                    success = True
+                else:
+                    failed_count += 1
+                    break
+            except (ValueError, KeyError) as err:
+                attempt += 1
+                if attempt >= retry_limit:
+                    failed_count += 1
+                    
+    return {"processed": len(processed), "failed": failed_count}`,
+  },
 ];
 
 export const LiveCodeScanner: React.FC<LiveCodeScannerProps> = ({

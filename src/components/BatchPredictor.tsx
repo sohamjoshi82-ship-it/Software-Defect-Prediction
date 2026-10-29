@@ -120,28 +120,39 @@ export const BatchPredictor: React.FC<BatchPredictorProps> = ({
     reader.onload = (event) => {
       try {
         const text = event.target?.result as string;
-        const lines = text.trim().split('\n');
-        if (lines.length < 2) return;
-        const headers = lines[0].split(',').map((h) => h.trim().replace(/"/g, ''));
+        const rawLines = text.split(/\r?\n/).map((l) => l.trim()).filter((l) => l.length > 0);
+        if (rawLines.length < 2) {
+          console.warn('CSV file must contain at least a header row and one data row.');
+          return;
+        }
+        const headers = rawLines[0].split(',').map((h) => h.trim().replace(/^"|"$/g, ''));
         const newRecords: SoftwareModuleRecord[] = [];
 
-        for (let i = 1; i < lines.length; i++) {
-          const cols = lines[i].split(',').map((c) => c.trim().replace(/"/g, ''));
+        for (let i = 1; i < rawLines.length; i++) {
+          const cols = rawLines[i].split(',').map((c) => c.trim().replace(/^"|"$/g, ''));
+          if (cols.length === 0 || (cols.length === 1 && !cols[0])) continue;
+
           const metrics: { [key: string]: number } = {};
           let isDefective: 0 | 1 = 0;
 
           headers.forEach((h, colIdx) => {
             const val = parseFloat(cols[colIdx]);
             if (h.toLowerCase().includes('defect') || h.toLowerCase() === 'class') {
-              isDefective = val > 0 || cols[colIdx].toLowerCase() === 'true' || cols[colIdx].toLowerCase() === 'y' ? 1 : 0;
+              const lowerVal = (cols[colIdx] || '').toLowerCase();
+              isDefective = val > 0 || lowerVal === 'true' || lowerVal === 'y' || lowerVal === 'yes' ? 1 : 0;
             } else if (!isNaN(val)) {
               metrics[h] = val;
             }
           });
 
+          // Ensure at least LOC or a metric exists
+          if (Object.keys(metrics).length === 0) {
+            metrics['loc'] = 10;
+          }
+
           newRecords.push({
             id: `CUSTOM_${i}`,
-            name: `custom_module_${i}`,
+            name: `module_${i}`,
             metrics,
             defective: isDefective,
           });

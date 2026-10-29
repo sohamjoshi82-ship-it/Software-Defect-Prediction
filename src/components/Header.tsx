@@ -11,6 +11,7 @@ import {
   Radar,
   Volume2,
   VolumeX,
+  Rocket,
 } from 'lucide-react';
 import type { DatasetMeta, TrainedModelInstance } from '../ml/types.ts';
 import { BENCHMARK_DATASETS } from '../ml/datasets.ts';
@@ -23,6 +24,7 @@ interface HeaderProps {
   onRetrain: () => void;
   onOpenGuide: () => void;
   onOpenWizard: () => void;
+  onOpenDeploy: () => void;
   activeTab: 'dashboard' | 'training' | 'evaluation' | 'scanner' | 'batch';
   setActiveTab: (tab: 'dashboard' | 'training' | 'evaluation' | 'scanner' | 'batch') => void;
   isTraining: boolean;
@@ -37,6 +39,7 @@ export const Header: React.FC<HeaderProps> = ({
   onRetrain,
   onOpenGuide,
   onOpenWizard,
+  onOpenDeploy,
   activeTab,
   setActiveTab,
   isTraining,
@@ -140,6 +143,21 @@ export const Header: React.FC<HeaderProps> = ({
           >
             <Sparkles className="h-3.5 w-3.5 text-amber-300 animate-pulse" />
             <span>Quick Tour</span>
+          </motion.button>
+
+          {/* 1-Click Deploy Guide */}
+          <motion.button
+            whileHover={{ scale: 1.02 }}
+            whileTap={{ scale: 0.98 }}
+            onClick={() => {
+              cyberSound.playClick();
+              onOpenDeploy();
+            }}
+            className="flex items-center gap-1.5 px-2.5 py-1.5 text-xs font-semibold rounded-lg bg-cyan-950/80 hover:bg-cyan-900/90 border border-cyan-500/80 text-cyan-200 shadow-sm shadow-cyan-950/60 transition-colors cursor-pointer"
+            title="Deploy to Vercel, Netlify, or Docker in 1 click"
+          >
+            <Rocket className="h-3.5 w-3.5 text-cyan-400" />
+            <span>Deploy</span>
           </motion.button>
 
           {/* Dataset Selector with human-friendly names */}
